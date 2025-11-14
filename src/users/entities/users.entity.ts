@@ -1,4 +1,11 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Post } from 'src/posts/entities/posts.entity';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  OneToMany,
+} from 'typeorm';
 
 @Entity()
 export class User {
@@ -8,10 +15,10 @@ export class User {
   @Column()
   name: string;
 
-  @Column()
+  @Column({ unique: true })
   username: string;
 
-  @Column()
+  @Column({ unique: true })
   email: string;
 
   // Hash the password before storing it
@@ -21,12 +28,15 @@ export class User {
   @Column()
   role: string;
 
-  @Column()
+  @Column({ default: true })
   isActive: boolean;
 
-  @Column()
+  @Column({ default: false })
   isBlocked: boolean;
 
-  @Column()
+  @CreateDateColumn()
   createdAt: Date;
+
+  @OneToMany(() => Post, (post) => post.owner)
+  posts: Post[];
 }
