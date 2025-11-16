@@ -7,6 +7,7 @@ import { UserDto } from 'src/users/dto/user.dto/user.dto';
 import { User } from 'src/users/entities/users.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class UsersService {
@@ -16,19 +17,23 @@ export class UsersService {
   ) {}
 
   async findAll(): Promise<UserDto[]> {
-    return await this.usersRepository.find();
+    const users = await this.usersRepository.find();
+    return users.map((user) => plainToInstance(UserDto, user));
   }
 
   async findOne(id: number): Promise<UserDto | null> {
-    return await this.usersRepository.findOneBy({ id });
+    const user = await this.usersRepository.findOneBy({ id });
+    return user ? plainToInstance(UserDto, user) : null;
   }
 
   async findOneByEmail(email: string): Promise<UserDto | null> {
-    return await this.usersRepository.findOneBy({ email });
+    const user = await this.usersRepository.findOneBy({ email });
+    return user ? plainToInstance(UserDto, user) : null;
   }
 
   async findOneByUsername(username: string): Promise<UserDto | null> {
-    return await this.usersRepository.findOneBy({ username });
+    const user = await this.usersRepository.findOneBy({ username });
+    return user ? plainToInstance(UserDto, user) : null;
   }
 
   async remove(id: number): Promise<void> {
@@ -36,7 +41,6 @@ export class UsersService {
   }
 
   // InternUse
-  // Al teu UsersService
   async findEntityByEmail(email: string): Promise<User | null> {
     return await this.usersRepository.findOneBy({ email });
   }
@@ -52,7 +56,8 @@ export class UsersService {
       password: hashedPassword,
       role: 'user',
     });
-    return await this.usersRepository.save(newUser);
+    const savedUser = await this.usersRepository.save(newUser);
+    return plainToInstance(UserDto, savedUser);
   }
 
   async update(id: number, updateData: UpdateUserDto): Promise<UserDto | null> {
@@ -60,15 +65,16 @@ export class UsersService {
       updateData.password = await bcrypt.hash(updateData.password, 10);
     }
     await this.usersRepository.update(id, updateData);
-    return this.usersRepository.findOneBy({ id });
+    const updatedUser = await this.usersRepository.findOneBy({ id });
+    return updatedUser ? plainToInstance(UserDto, updatedUser) : null;
   }
 
-  //Let admin update users data
   async adminUpdateUser(
     id: number,
     updateData: AdminUpdateUserDto,
   ): Promise<UserDto | null> {
     await this.usersRepository.update(id, updateData);
-    return this.usersRepository.findOneBy({ id });
+    const updatedUser = await this.usersRepository.findOneBy({ id });
+    return updatedUser ? plainToInstance(UserDto, updatedUser) : null;
   }
 }
