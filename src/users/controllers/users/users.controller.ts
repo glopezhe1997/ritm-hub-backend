@@ -2,6 +2,7 @@ import {
   Body,
   ConflictException,
   Controller,
+  Delete,
   Get,
   NotFoundException,
   Param,
@@ -43,7 +44,7 @@ export class UsersController {
   async createUser(@Body() user: CreateUserDto): Promise<UserDto> {
     const userExists = await this.userService.findOneByEmail(user.email);
     if (userExists) {
-      throw new NotFoundException(
+      throw new ConflictException(
         `User with email ${user.email} already exists`,
       );
     }
@@ -91,5 +92,15 @@ export class UsersController {
       throw new NotFoundException(`User with id ${id} not found`);
     }
     return updated;
+  }
+
+  @Delete(':id')
+  async deleteUser(@Param('id') id: number): Promise<{ message: string }> {
+    const userToDelete = await this.userService.findOne(id);
+    if (!userToDelete) {
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
+    await this.userService.remove(id);
+    return { message: `User with id ${id} has been deleted` };
   }
 }

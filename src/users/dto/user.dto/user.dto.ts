@@ -6,7 +6,6 @@ import {
   IsInt,
   IsOptional,
   IsString,
-  IsStrongPassword,
 } from 'class-validator';
 
 export class UserDto {
@@ -25,9 +24,9 @@ export class UserDto {
   @IsDate()
   Birthdate: Date;
 
-  @IsStrongPassword()
-  @Exclude() // Exclude password from serialization
-  password: string;
+  // @IsStrongPassword()
+  // @Exclude() // Exclude password from serialization
+  // password: string;
 
   @IsString()
   role: string;

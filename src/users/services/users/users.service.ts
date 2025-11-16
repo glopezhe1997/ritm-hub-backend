@@ -6,6 +6,7 @@ import { UpdateUserDto } from 'src/users/dto/update-user.dto/update-user.dto';
 import { UserDto } from 'src/users/dto/user.dto/user.dto';
 import { User } from 'src/users/entities/users.entity';
 import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -34,15 +35,30 @@ export class UsersService {
     await this.usersRepository.delete(id);
   }
 
+  // InternUse
+  // Al teu UsersService
+  async findEntityByEmail(email: string): Promise<User | null> {
+    return await this.usersRepository.findOneBy({ email });
+  }
+
+  async findEntityByUsername(username: string): Promise<User | null> {
+    return await this.usersRepository.findOneBy({ username });
+  }
+
   async create(user: CreateUserDto): Promise<UserDto> {
+    const hashedPassword = await bcrypt.hash(user.password, 10);
     const newUser = this.usersRepository.create({
       ...user,
+      password: hashedPassword,
       role: 'user',
     });
     return await this.usersRepository.save(newUser);
   }
 
   async update(id: number, updateData: UpdateUserDto): Promise<UserDto | null> {
+    if (updateData.password) {
+      updateData.password = await bcrypt.hash(updateData.password, 10);
+    }
     await this.usersRepository.update(id, updateData);
     return this.usersRepository.findOneBy({ id });
   }

@@ -10,5 +10,6 @@ import { UsersController } from './controllers/users/users.controller';
   imports: [TypeOrmModule.forFeature([User])],
   providers: [UsersService],
   controllers: [UsersController],
+  exports: [UsersService],
 })
 export class UsersModule {}
