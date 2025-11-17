@@ -18,6 +18,8 @@ import { SharedPlaylistsModule } from './shared_playlists/shared_playlists.modul
 import { PostLikesModule } from './post_likes/post_likes.module';
 import { PostsTagModule } from './posts_tag/posts_tag.module';
 import { AuthModule } from './auth/auth.module';
+import { SpotifyModule } from './spotify/spotify.module';
+import { FavoritesModule } from './favorites/favorites.module';
 
 @Module({
   imports: [
@@ -83,6 +85,10 @@ import { AuthModule } from './auth/auth.module';
     PostsTagModule,
 
     AuthModule,
+
+    SpotifyModule,
+
+    FavoritesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

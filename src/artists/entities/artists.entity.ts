@@ -12,6 +12,15 @@ export class Artist {
   @Column()
   external_id: string;
 
+  @Column()
+  followers: number;
+
+  @Column('simple-array')
+  genres: string[];
+
+  @Column({ nullable: true })
+  img_url: string | null;
+
   @OneToMany(() => Album, (album) => album.artist_id)
   albums: Album[];
 }

@@ -2,7 +2,7 @@ import { IsInt, IsString } from 'class-validator';
 
 export class AlbumDto {
   @IsInt()
-  id: number;
+  id!: number;
 
   @IsString()
   title: string;
