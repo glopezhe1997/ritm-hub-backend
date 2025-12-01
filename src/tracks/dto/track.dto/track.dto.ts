@@ -1,4 +1,5 @@
-import { IsInt, IsString, IsUrl } from 'class-validator';
+import { IsInt, IsObject, IsString, IsUrl } from 'class-validator';
+import { Album } from 'src/albums/entities/albums.entity';
 
 export class TrackDto {
   @IsInt()
@@ -10,8 +11,8 @@ export class TrackDto {
   @IsInt()
   duration_ms: number;
 
-  @IsInt()
-  album_id: number;
+  @IsObject()
+  album_id: Album;
 
   @IsString()
   external_id: string;

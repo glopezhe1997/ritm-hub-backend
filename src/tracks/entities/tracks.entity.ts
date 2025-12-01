@@ -20,11 +20,11 @@ export class Track {
 
   @ManyToOne(() => Album, (album) => album.tracks)
   @JoinColumn({ name: 'album_id' })
-  album_id: number;
+  album_id: Album;
 
   @Column()
   external_id: string;
 
-  @Column()
-  preview_url: string;
+  @Column({ type: 'varchar', nullable: true })
+  preview_url: string | null;
 }

@@ -18,7 +18,7 @@ export class Artist {
   @Column('simple-array')
   genres: string[];
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   img_url: string | null;
 
   @OneToMany(() => Album, (album) => album.artist_id)

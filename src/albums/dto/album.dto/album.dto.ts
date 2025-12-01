@@ -1,15 +1,19 @@
-import { IsInt, IsString } from 'class-validator';
+import { IsInt, IsObject, IsString, IsUrl } from 'class-validator';
+import { Artist } from 'src/artists/entities/artists.entity';
 
 export class AlbumDto {
   @IsInt()
   id!: number;
 
   @IsString()
-  title: string;
+  name: string;
 
-  @IsInt()
-  artist_id: number;
+  @IsObject()
+  artist_id: Artist;
 
   @IsString()
   external_id: string;
+
+  @IsUrl()
+  img_url: string | null;
 }

@@ -5,8 +5,11 @@ import {
   ManyToOne,
   JoinColumn,
   CreateDateColumn,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { User } from '../../users/entities/users.entity';
+import { Track } from 'src/tracks/entities/tracks.entity';
 
 @Entity()
 export class Playlist {
@@ -28,4 +31,12 @@ export class Playlist {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @ManyToMany(() => Track)
+  @JoinTable({
+    name: 'playlist_tracks',
+    joinColumn: { name: 'playlist_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'track_id', referencedColumnName: 'id' },
+  })
+  tracks: Track[];
 }

@@ -1,4 +1,5 @@
 import { Favorite } from 'src/favorites/entities/favorite.entity';
+import { Playlist } from 'src/playlists/entities/playlist.entity';
 import { Post } from 'src/posts/entities/posts.entity';
 import {
   Entity,
@@ -46,4 +47,7 @@ export class User {
 
   @OneToMany(() => Favorite, (favorite) => favorite.user)
   favorites: Favorite[];
+
+  @OneToMany(() => Playlist, (playlist) => playlist.owner)
+  playlists: Playlist[];
 }

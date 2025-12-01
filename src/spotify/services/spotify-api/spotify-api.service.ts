@@ -1,5 +1,23 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import axios from 'axios';
+import { AlbumSpotifyDto } from 'src/albums/dto/spotify/album-spotify.dto/album-spotify.dto';
+import { ArtistSpotifyDto } from 'src/artists/dto/spotify/artist-spotify.dto/artist-spotify.dto';
+import { TrackSpotifyDto } from 'src/tracks/dto/spotify/track-spotify.dto/track-spotify.dto';
+// DTO para playlist de Spotify
+export interface PlaylistSpotifyDto {
+  id: string;
+  name: string;
+  description: string | null;
+  images: { url: string }[];
+  tracks: { items: { track: { id: string } }[] };
+}
+
+export interface SpotifySearchResult<T> {
+  artists?: { items: T[] };
+  albums?: { items: T[] };
+  playlists?: { items: T[] };
+  tracks?: { items: T[] };
+}
 
 @Injectable()
 export class SpotifyApiService {
@@ -45,10 +63,13 @@ export class SpotifyApiService {
     }
   }
 
-  async search(query: string, type: string): Promise<any> {
+  async search<T = unknown>(
+    query: string,
+    type: string,
+  ): Promise<SpotifySearchResult<T>> {
     const token = await this.getAccessToken();
     try {
-      const response = await axios.get<{ [key: string]: unknown }>(
+      const response = await axios.get<SpotifySearchResult<T>>(
         `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=${type}`,
         {
           headers: {
@@ -65,6 +86,124 @@ export class SpotifyApiService {
         );
       }
       throw new InternalServerErrorException('Unknown error searching Spotify');
+    }
+  }
+
+  // Get artist by Spotify ID
+  async getArtistById(spotifyId: string): Promise<ArtistSpotifyDto | null> {
+    const token = await this.getAccessToken();
+    try {
+      const response = await axios.get(
+        `https://api.spotify.com/v1/artists/${spotifyId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      return response.data as ArtistSpotifyDto;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.log('Spotify getArtistById error:', error.message);
+        return null;
+      }
+      console.log('Unknown error in Spotify getArtistById');
+      return null;
+    }
+  }
+
+  // Get playlist by Spotify ID
+  async getPlaylistById(spotifyId: string): Promise<PlaylistSpotifyDto | null> {
+    const token = await this.getAccessToken();
+    try {
+      const response = await axios.get(
+        `https://api.spotify.com/v1/playlists/${spotifyId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      return response.data as PlaylistSpotifyDto;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.log('Spotify getPlaylistById error:', error.message);
+        return null;
+      }
+      console.log('Unknown error in Spotify getPlaylistById');
+      return null;
+    }
+  }
+
+  // Get tracks from a playlist by Spotify ID
+  async getPlaylistTracks(
+    spotifyId: string,
+  ): Promise<{ track: TrackSpotifyDto }[]> {
+    const token = await this.getAccessToken();
+    try {
+      const response = await axios.get<{ items: { track: TrackSpotifyDto }[] }>(
+        `https://api.spotify.com/v1/playlists/${spotifyId}/tracks`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      // Devuelve array de items (cada uno tiene un track)
+      return response.data.items;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.log('Spotify getPlaylistTracks error:', error.message);
+        return [];
+      }
+      console.log('Unknown error in Spotify getPlaylistTracks');
+      return [];
+    }
+  }
+
+  getAlbumById(spotifyId: string): Promise<AlbumSpotifyDto | null> {
+    const token = this.getAccessToken();
+    return token.then(async (accessToken) => {
+      try {
+        const response = await axios.get(
+          `https://api.spotify.com/v1/albums/${spotifyId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          },
+        );
+        return response.data as AlbumSpotifyDto;
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.log('Spotify getAlbumById error:', error.message);
+          return null;
+        }
+        console.log('Unknown error in Spotify getAlbumById');
+        return null;
+      }
+    });
+  }
+
+  async getTrackById(spotifyId: string): Promise<TrackSpotifyDto | null> {
+    const token = await this.getAccessToken();
+    try {
+      const response = await axios.get(
+        `https://api.spotify.com/v1/tracks/${spotifyId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      return response.data as TrackSpotifyDto;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.log('Spotify getTrackById error:', error.message);
+        return null;
+      }
+      console.log('Unknown error in Spotify getTrackById');
+      return null;
     }
   }
 }

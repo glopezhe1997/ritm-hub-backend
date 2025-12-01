@@ -3,19 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Artist } from 'src/artists/entities/artists.entity';
 import { SpotifyApiService } from 'src/spotify/services/spotify-api/spotify-api.service';
 import { Repository } from 'typeorm';
-
-class ArtistSpotify {
-  id: string; // external id
-  name: string;
-  followers: { total: number };
-  genres: string[];
-  images: { url: string; height: number; width: number }[];
-  type: string;
-}
-
-class deleteArtistDto {
-  numberRowsAffected: number;
-}
+import { ArtistSpotifyDto } from 'src/artists/dto/spotify/artist-spotify.dto/artist-spotify.dto';
+import { DeleteResultDto } from 'src/shared/dto/delete-result.dto/delete-result.dto';
 
 @Injectable()
 export class ArtistsService {
@@ -40,14 +29,27 @@ export class ArtistsService {
     return this.artistsRepository.findOneBy({ external_id: externalId });
   }
 
-  // Create artist
-  async createArtist(artistData: ArtistSpotify): Promise<Artist> {
-    // Check if artist already exists
-    const existingArtist = await this.getArtistByExternalId(artistData.id);
-    if (existingArtist) {
-      return existingArtist;
-    }
+  // Get artist by name
+  async getArtistByName(name: string): Promise<Artist | null> {
+    return this.artistsRepository.findOneBy({ name });
+  }
 
+  //
+  async findOrCreateArtistByExternalId(
+    externalId: string,
+  ): Promise<Artist | null> {
+    const existing = await this.getArtistByExternalId(externalId);
+    if (existing) return existing;
+
+    // Obtenir dades de Spotify per ID
+    const spotifyData = await this.spotifyApiService.getArtistById(externalId);
+    if (!spotifyData) return null;
+
+    return this.createArtist(spotifyData);
+  }
+
+  // Create artist
+  async createArtist(artistData: ArtistSpotifyDto): Promise<Artist> {
     // Create new artist
     const newArtist = this.artistsRepository.create({
       name: artistData.name,
@@ -60,7 +62,7 @@ export class ArtistsService {
   }
 
   // Delete artists
-  async deleteArtist(internalId: number): Promise<deleteArtistDto> {
+  async deleteArtist(internalId: number): Promise<DeleteResultDto> {
     const artistToDelete = await this.artistsRepository.delete(internalId);
     return { numberRowsAffected: artistToDelete.affected || 0 };
   }

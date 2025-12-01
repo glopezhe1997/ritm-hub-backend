@@ -15,7 +15,10 @@ export class Album {
   id: number;
 
   @Column()
-  title: string;
+  name: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  img_url: string | null;
 
   @ManyToOne(() => Artist, (artist) => artist.albums)
   @JoinColumn({ name: 'artist_id' })
