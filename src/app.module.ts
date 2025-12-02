@@ -13,7 +13,6 @@ import { PostsModule } from './posts/posts.module';
 import { ArtistsModule } from './artists/artists.module';
 import { FollowsModule } from './follows/follows.module';
 import { OauthTokensModule } from './oauth_tokens/oauth_tokens.module';
-import { PlaylistTracksModule } from './playlist_tracks/playlist_tracks.module';
 import { SharedPlaylistsModule } from './shared_playlists/shared_playlists.module';
 import { PostLikesModule } from './post_likes/post_likes.module';
 import { PostsTagModule } from './posts_tag/posts_tag.module';
@@ -75,8 +74,6 @@ import { FavoritesModule } from './favorites/favorites.module';
     FollowsModule,
 
     OauthTokensModule,
-
-    PlaylistTracksModule,
 
     SharedPlaylistsModule,
 

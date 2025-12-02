@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
+import { TrackDto } from 'src/tracks/dto/track.dto/track.dto';
 
 export class PlaylistDto {
   @IsNumber()
@@ -26,4 +27,6 @@ export class PlaylistDto {
 
   @IsDate()
   createdAt: Date;
+
+  tracks: TrackDto[];
 }

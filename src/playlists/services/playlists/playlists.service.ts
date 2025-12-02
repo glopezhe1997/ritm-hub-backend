@@ -12,6 +12,7 @@ import { Track } from 'src/tracks/entities/tracks.entity';
 import { User } from 'src/users/entities/users.entity';
 import { PlaylistSpotifyDto } from 'src/spotify/services/spotify-api/spotify-api.service';
 import { TrackSpotifyDto } from 'src/tracks/dto/spotify/track-spotify.dto/track-spotify.dto';
+import { PlaylistDto } from 'src/playlists/dto/playlist.dto/playlist.dto';
 
 @Injectable()
 export class PlaylistsService {
@@ -121,5 +122,24 @@ export class PlaylistsService {
     const playlist = await this.getPlaylistById(playlistId, userId);
     playlist.tracks = playlist.tracks.filter((t) => t.id !== trackId);
     return this.playlistRepository.save(playlist);
+  }
+
+  toPlaylistDto(playlist: Playlist): PlaylistDto {
+    return {
+      playlist_id: playlist.id,
+      name: playlist.name,
+      owner_id: playlist.owner?.id,
+      is_public: playlist.is_public,
+      external_id: playlist.external_id,
+      createdAt: playlist.createdAt,
+      tracks: playlist.tracks.map((track) => ({
+        id: track.id,
+        title: track.title,
+        duration_ms: track.duration_ms,
+        album_id: track.album_id,
+        external_id: track.external_id,
+        preview_url: track.preview_url ?? '',
+      })),
+    };
   }
 }
