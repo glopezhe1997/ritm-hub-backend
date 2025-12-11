@@ -9,6 +9,7 @@ import { AlbumsService } from 'src/albums/services/albums/albums.service';
 import { AlbumDto } from 'src/albums/dto/album.dto/album.dto';
 import { DeleteResultDto } from 'src/shared/dto/delete-result.dto/delete-result.dto';
 import { Album } from 'src/albums/entities/albums.entity';
+import { AlbumSpotifyDto } from 'src/albums/dto/spotify/album-spotify.dto/album-spotify.dto';
 
 @Controller('albums')
 export class AlbumsController {
@@ -23,6 +24,12 @@ export class AlbumsController {
       external_id: album.external_id,
       img_url: album.img_url,
     };
+  }
+
+  // Get trending albums
+  @Get('trending')
+  async getTrendingAlbums(): Promise<AlbumSpotifyDto[]> {
+    return this.albumService.getTrendingAlbums();
   }
 
   // Get all albums

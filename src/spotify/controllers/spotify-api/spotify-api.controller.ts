@@ -1,13 +1,13 @@
 import { Body, Controller, Get, Post, Query, Param } from '@nestjs/common';
-import {
-  PlaylistSpotifyDto,
-  SpotifyApiService,
-} from '../../services/spotify-api/spotify-api.service';
+import { SpotifyApiService } from '../../services/spotify-api/spotify-api.service';
 import { ArtistsService } from 'src/artists/services/artists/artists.service';
 import { AlbumsService } from 'src/albums/services/albums/albums.service';
-import { ArtistSpotifyDto } from 'src/artists/dto/spotify/artist-spotify.dto/artist-spotify.dto';
-import { AlbumSpotifyDto } from 'src/albums/dto/spotify/album-spotify.dto/album-spotify.dto';
-import { TrackSpotifyDto } from 'src/tracks/dto/spotify/track-spotify.dto/track-spotify.dto';
+import { TracksService } from 'src/tracks/services/tracks/tracks.service';
+import { PlaylistsService } from 'src/playlists/services/playlists/playlists.service';
+import { Artist } from 'src/artists/entities/artists.entity';
+import { Album } from 'src/albums/entities/albums.entity';
+import { Track } from 'src/tracks/entities/tracks.entity';
+import { Playlist } from 'src/playlists/entities/playlist.entity';
 
 @Controller('spotify')
 export class SpotifyApiController {
@@ -15,14 +15,32 @@ export class SpotifyApiController {
     private readonly spotifyApiService: SpotifyApiService,
     private readonly artistsService: ArtistsService,
     private readonly albumsService: AlbumsService,
+    private readonly tracksService: TracksService,
+    private readonly playlistsService: PlaylistsService,
   ) {}
 
+  // Buscar en todos los tipos por defecto
   @Get('search')
   async search(
     @Query('q') q: string,
-    @Query('type') type: string,
+    @Query('type')
+    type: string | string[] = ['artist', 'album', 'track', 'playlist'],
   ): Promise<any> {
-    return await this.spotifyApiService.search(q, type);
+    // Si type es string, conviértelo en array separando por coma
+    let typeArray: string[];
+    if (typeof type === 'string') {
+      typeArray = type.split(',');
+    } else {
+      typeArray = type;
+    }
+    const result = await this.spotifyApiService.search(q, typeArray);
+
+    return {
+      artists: result.artists?.items.slice(0, 5) ?? [],
+      albums: result.albums?.items.slice(0, 5) ?? [],
+      tracks: result.tracks?.items.slice(0, 10) ?? [],
+      playlists: result.playlists?.items.slice(0, 5) ?? [],
+    };
   }
 
   // Obtener playlist de Spotify por ID
@@ -37,59 +55,35 @@ export class SpotifyApiController {
     return await this.spotifyApiService.getPlaylistTracks(id);
   }
 
+  // Seleccionar y guardar recurso en la BBDD
   @Post('select')
   async selectResource(
     @Body() body: { type: string; external_id: string },
-  ): Promise<
-    | ArtistSpotifyDto
-    | AlbumSpotifyDto
-    | PlaylistSpotifyDto
-    | TrackSpotifyDto
-    | null
-  > {
+  ): Promise<Artist | Album | Track | Playlist | null> {
     const { type, external_id } = body;
 
     if (type === 'artist') {
-      const artist =
-        await this.artistsService.findOrCreateArtistByExternalId(external_id);
-      return artist
-        ? {
-            id: artist.external_id,
-            name: artist.name,
-            genres: artist.genres,
-            followers: {
-              total: artist.followers,
-            },
-            images: artist.img_url
-              ? [{ url: artist.img_url, height: 0, width: 0 }]
-              : [],
-            type: 'artist',
-          }
-        : null;
+      return await this.artistsService.findOrCreateArtistByExternalId(
+        external_id,
+      );
     }
 
     if (type === 'album') {
-      const album =
-        await this.albumsService.findOrCreateAlbumByExternalId(external_id);
-      return album
-        ? {
-            id: album.external_id,
-            name: album.name,
-            artists: album.artist_id
-              ? [{ id: album.artist_id.external_id }]
-              : [],
-            images: album.img_url ? [{ url: album.img_url }] : [],
-            total_tracks: 0,
-          }
-        : null;
-    }
-
-    if (type === 'playlist') {
-      return await this.spotifyApiService.getPlaylistById(external_id);
+      return await this.albumsService.findOrCreateAlbumByExternalId(
+        external_id,
+      );
     }
 
     if (type === 'track') {
-      return await this.spotifyApiService.getTrackById(external_id);
+      return await this.tracksService.findOrCreateTrackByExternalId(
+        external_id,
+      );
+    }
+
+    if (type === 'playlist') {
+      return await this.playlistsService.findOrCreatePlaylistByExternalId(
+        external_id,
+      );
     }
 
     return null;

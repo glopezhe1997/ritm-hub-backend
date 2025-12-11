@@ -43,6 +43,7 @@ export class UsersController {
   @Post()
   async createUser(@Body() user: CreateUserDto): Promise<UserDto> {
     const userExists = await this.userService.findOneByEmail(user.email);
+    console.log('userExists:', userExists); // <-- Añade esto
     if (userExists) {
       throw new ConflictException(
         `User with email ${user.email} already exists`,
@@ -51,6 +52,7 @@ export class UsersController {
     const usernameExists = await this.userService.findOneByUsername(
       user.username,
     );
+    console.log('usernameExists:', usernameExists); // <-- Añade esto
     if (usernameExists) {
       throw new ConflictException(`Username ${user.username} already exists`);
     }

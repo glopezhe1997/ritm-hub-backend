@@ -65,12 +65,14 @@ export class SpotifyApiService {
 
   async search<T = unknown>(
     query: string,
-    type: string,
+    type: string | string[],
   ): Promise<SpotifySearchResult<T>> {
     const token = await this.getAccessToken();
+    // Si type es array, únete con comas
+    const typeParam = Array.isArray(type) ? type.join(',') : type;
     try {
       const response = await axios.get<SpotifySearchResult<T>>(
-        `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=${type}`,
+        `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=${typeParam}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

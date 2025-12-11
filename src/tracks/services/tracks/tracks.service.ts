@@ -45,6 +45,18 @@ export class TracksService {
     });
   }
 
+  // Get trending tracks
+  async getTrendingTracks(): Promise<TrackSpotifyDto[]> {
+    // Buscar canciones populares en Spotify
+    const spotifyResult = await this.spotifyApiService.search<TrackSpotifyDto>(
+      'a', // Consulta genérica
+      'track',
+    );
+
+    // Devuelve solo las primeras 5 canciones (SIN guardar)
+    return spotifyResult.tracks?.items.slice(0, 5) || [];
+  }
+
   // Find or create track by external id
   async findOrCreateTrackByExternalId(
     externalId: string,

@@ -14,5 +14,6 @@ import { TracksModule } from 'src/tracks/tracks.module';
   ],
   providers: [PlaylistsService],
   controllers: [PlaylistsController],
+  exports: [PlaylistsService],
 })
 export class PlaylistsModule {}

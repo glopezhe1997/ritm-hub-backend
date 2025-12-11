@@ -30,6 +30,18 @@ export class PlaylistsService {
     });
   }
 
+  async getTrendingPlaylists(): Promise<PlaylistSpotifyDto[]> {
+    // Buscar playlists públicas populares en Spotify
+    const spotifyResult =
+      await this.spotifyApiService.search<PlaylistSpotifyDto>(
+        'a', // Consulta genérica
+        'playlist',
+      );
+
+    // Devuelve solo las primeras 5 playlists (SIN guardar)
+    return spotifyResult.playlists?.items.slice(0, 5) || [];
+  }
+
   async getPrivatePlaylists(userId: number): Promise<Playlist[]> {
     return this.playlistRepository.find({
       where: { owner: { id: userId }, is_public: false },

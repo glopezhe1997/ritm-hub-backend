@@ -5,10 +5,11 @@ import {
   NotFoundException,
   Param,
 } from '@nestjs/common';
-import { ArtistDto } from 'src/artists/dto/artist.dto/artist.dto';
-import { DeleteResultDto } from 'src/shared/dto/delete-result.dto/delete-result.dto';
-import { Artist } from 'src/artists/entities/artists.entity';
-import { ArtistsService } from 'src/artists/services/artists/artists.service';
+import { ArtistDto } from '../../dto/artist.dto/artist.dto';
+import { DeleteResultDto } from '../../../shared/dto/delete-result.dto/delete-result.dto';
+import { Artist } from '../../entities/artists.entity';
+import { ArtistsService } from '../../services/artists/artists.service';
+import { ArtistSpotifyDto } from 'src/artists/dto/spotify/artist-spotify.dto/artist-spotify.dto';
 
 @Controller('artists')
 export class ArtistsController {
@@ -23,6 +24,11 @@ export class ArtistsController {
       followers: artist.followers,
       img_url: artist.img_url,
     };
+  }
+
+  @Get('trending')
+  async getTrendingArtists(): Promise<ArtistSpotifyDto[]> {
+    return this.artistService.getTrendingArtists();
   }
 
   @Get(':externalId')

@@ -36,6 +36,7 @@ import { FavoritesModule } from './favorites/favorites.module';
         DB_USER: Joi.string().required(),
         DB_PASS: Joi.string().allow('').default(''),
         DB_NAME: Joi.string().required(),
+        JWT_SECRET: Joi.string().required(),
       }),
     }),
 

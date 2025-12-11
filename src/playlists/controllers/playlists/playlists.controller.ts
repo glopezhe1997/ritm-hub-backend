@@ -7,6 +7,11 @@ import { AuthenticatedRequestDto } from 'src/shared/dto/authenticated-request.dt
 export class PlaylistsController {
   constructor(private readonly playlistsService: PlaylistsService) {}
 
+  @Get('trending')
+  async getTrendingPlaylists(): Promise<any[]> {
+    return this.playlistsService.getTrendingPlaylists();
+  }
+
   @Get('public')
   async getPublicPlaylists(): Promise<PlaylistDto[]> {
     const playlists = await this.playlistsService.getPublicPlaylists();

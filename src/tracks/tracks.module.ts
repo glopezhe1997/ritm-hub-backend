@@ -2,6 +2,7 @@ import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Track } from './entities/tracks.entity';
 import { TracksService } from './services/tracks/tracks.service';
+import { TracksController } from './controllers/tracks/tracks.controller';
 import { SpotifyModule } from 'src/spotify/spotify.module';
 import { AlbumsModule } from 'src/albums/albums.module';
 
@@ -11,7 +12,7 @@ import { AlbumsModule } from 'src/albums/albums.module';
     forwardRef(() => SpotifyModule),
     forwardRef(() => AlbumsModule),
   ],
-  controllers: [],
+  controllers: [TracksController],
   providers: [TracksService],
   exports: [TracksService],
 })

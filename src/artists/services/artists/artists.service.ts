@@ -31,9 +31,31 @@ export class ArtistsService {
 
   // Get artist by name
   async getArtistByName(name: string): Promise<Artist | null> {
-    return this.artistsRepository.findOneBy({ name });
+    const local = await this.artistsRepository.findOneBy({ name });
+    if (local) return local;
+
+    // Si no está en la BBDD, buscar en Spotify y crear/recuperar
+    const spotifyResult = await this.spotifyApiService.search<ArtistSpotifyDto>(
+      name,
+      'artist',
+    );
+    const spotifyArtist = spotifyResult.artists?.items?.[0];
+    if (!spotifyArtist) return null;
+
+    return this.findOrCreateArtistByExternalId(spotifyArtist.id);
   }
 
+  // Get trending artists
+  async getTrendingArtists(): Promise<ArtistSpotifyDto[]> {
+    // Buscar artistas populares en Spotify
+    const spotifyResult = await this.spotifyApiService.search<ArtistSpotifyDto>(
+      'a', // Consulta genérica
+      'artist',
+    );
+
+    // Devuelve directamente los datos de Spotify (SIN guardar)
+    return spotifyResult.artists?.items.slice(0, 5) || [];
+  }
   //
   async findOrCreateArtistByExternalId(
     externalId: string,

@@ -20,8 +20,8 @@ export class AuthService {
     }
     // Compare passwords
     const passwordValid = await bcrypt.compare(
-      user.password,
       signInData.password,
+      user.password,
     );
     // Validate password
     if (!passwordValid) {

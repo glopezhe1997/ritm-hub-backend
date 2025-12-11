@@ -45,6 +45,18 @@ export class AlbumsService {
     });
   }
 
+  // Get trending albums
+  async getTrendingAlbums(): Promise<AlbumSpotifyDto[]> {
+    // Buscar álbumes populares en Spotify
+    const spotifyResult = await this.spotifyApiService.search<AlbumSpotifyDto>(
+      'a', // Consulta genérica
+      'album',
+    );
+
+    // Devuelve solo los primeros 5 álbumes (SIN guardar)
+    return spotifyResult.albums?.items.slice(0, 5) || [];
+  }
+
   // Find or create album by external id
   async findOrCreateAlbumByExternalId(
     externalId: string,
