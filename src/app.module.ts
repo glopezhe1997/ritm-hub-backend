@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import * as Joi from 'joi'; // Opcional: per validar variables d'entorn
+import * as Joi from 'joi';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -22,70 +22,72 @@ import { FavoritesModule } from './favorites/favorites.module';
 
 @Module({
   imports: [
-    // Configuració global amb validació opcional
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
-      // Validació opcional de variables d'entorn
       validationSchema: Joi.object({
+        DATABASE_URL: Joi.string().optional(), // Para Railway
         DB_TYPE: Joi.string()
           .valid('postgres', 'mysql', 'mariadb')
           .default('postgres'),
-        DB_HOST: Joi.string().default('localhost'),
-        DB_PORT: Joi.number().default(5432),
-        DB_USER: Joi.string().required(),
-        DB_PASS: Joi.string().allow('').default(''),
-        DB_NAME: Joi.string().required(),
+        DB_HOST: Joi.string().optional(),
+        DB_PORT: Joi.number().optional(),
+        DB_USER: Joi.string().optional(),
+        DB_PASS: Joi.string().allow('').optional(),
+        DB_NAME: Joi.string().optional(),
         JWT_SECRET: Joi.string().required(),
       }),
     }),
 
-    // Configuració de TypeORM
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: configService.get<'postgres' | 'mysql' | 'mariadb'>(
-          'DB_TYPE',
-          'postgres',
-        ),
-        host: configService.get<string>('DB_HOST'),
-        port: configService.get<number>('DB_PORT'),
-        username: configService.get<string>('DB_USER'),
-        password: configService.get<string>('DB_PASS'),
-        database: configService.get<string>('DB_NAME'),
-        autoLoadEntities: true, // Carrega automàticament les entitats
-        synchronize: process.env.NODE_ENV !== 'production', // Només en desenvolupament
-      }),
+      useFactory: (configService: ConfigService) => {
+        const databaseUrl = configService.get<string>('DATABASE_URL');
+
+        // Si existe DATABASE_URL (Railway), úsala directamente
+        if (databaseUrl) {
+          return {
+            type: 'postgres' as const,
+            url: databaseUrl,
+            autoLoadEntities: true,
+            synchronize: process.env.NODE_ENV !== 'production',
+            ssl: {
+              rejectUnauthorized: false,
+            },
+          };
+        }
+
+        // Si no existe DATABASE_URL, usa variables individuales (localhost)
+        return {
+          type: configService.get<'postgres' | 'mysql' | 'mariadb'>(
+            'DB_TYPE',
+            'postgres',
+          ),
+          host: configService.get<string>('DB_HOST', 'localhost'),
+          port: configService.get<number>('DB_PORT', 5432),
+          username: configService.get<string>('DB_USER'),
+          password: configService.get<string>('DB_PASS'),
+          database: configService.get<string>('DB_NAME'),
+          autoLoadEntities: true,
+          synchronize: true,
+        };
+      },
     }),
 
-    // Mòduls de funcionalitats
     UsersModule,
-
     PlaylistsModule,
-
     TracksModule,
-
     AlbumsModule,
-
     PostsModule,
-
     ArtistsModule,
-
     FollowsModule,
-
     OauthTokensModule,
-
     SharedPlaylistsModule,
-
     PostLikesModule,
-
     PostsTagModule,
-
     AuthModule,
-
     SpotifyModule,
-
     FavoritesModule,
   ],
   controllers: [AppController],
