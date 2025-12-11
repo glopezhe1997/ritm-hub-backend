@@ -4,11 +4,6 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Lista de orígenes permitidos desde variable de entorno
-  const allowedOrigins = (
-    process.env.ALLOWED_ORIGINS || 'http://localhost:4200'
-  ).split(',');
-
   app.enableCors({
     origin: (
       origin: string | undefined,
@@ -20,8 +15,19 @@ async function bootstrap() {
         return;
       }
 
+      // Lista de orígenes permitidos desde variable de entorno
+      const allowedOrigins = (
+        process.env.ALLOWED_ORIGINS || 'http://localhost:4200'
+      ).split(',');
+
       // Verifica si el origin está en la lista permitida
       if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      // Permite TODOS los subdominios de Vercel (*.vercel.app)
+      if (origin.endsWith('.vercel.app')) {
         callback(null, true);
         return;
       }
