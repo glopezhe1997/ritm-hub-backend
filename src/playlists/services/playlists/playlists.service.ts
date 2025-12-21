@@ -9,10 +9,10 @@ import { Playlist } from '../../entities/playlist.entity';
 import { SpotifyApiService } from 'src/spotify/services/spotify-api/spotify-api.service';
 import { TracksService } from 'src/tracks/services/tracks/tracks.service';
 import { Track } from 'src/tracks/entities/tracks.entity';
-import { User } from 'src/users/entities/users.entity';
 import { PlaylistSpotifyDto } from 'src/spotify/services/spotify-api/spotify-api.service';
 import { TrackSpotifyDto } from 'src/tracks/dto/spotify/track-spotify.dto/track-spotify.dto';
 import { PlaylistDto } from 'src/playlists/dto/playlist.dto/playlist.dto';
+import { UserDto } from 'src/users/dto/user.dto/user.dto';
 
 @Injectable()
 export class PlaylistsService {
@@ -63,7 +63,10 @@ export class PlaylistsService {
     return playlist;
   }
 
-  async createPlaylist(data: Partial<Playlist>, user: User): Promise<Playlist> {
+  async createPlaylist(
+    data: Partial<Playlist>,
+    user: UserDto,
+  ): Promise<Playlist> {
     const playlist = this.playlistRepository.create({
       ...data,
       is_public: false,

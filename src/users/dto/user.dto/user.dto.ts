@@ -24,10 +24,6 @@ export class UserDto {
   @IsDate()
   Birthdate: Date;
 
-  // @IsStrongPassword()
-  // @Exclude() // Exclude password from serialization
-  // password: string;
-
   @IsString()
   role: string;
 
