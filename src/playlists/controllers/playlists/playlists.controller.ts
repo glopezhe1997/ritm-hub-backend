@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Req,
   UseGuards,
@@ -45,6 +46,17 @@ export class PlaylistsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('user')
+  async getUserPlaylists(
+    @Req() req: AuthenticatedRequestDto,
+  ): Promise<PlaylistDto[]> {
+    const playlists = await this.playlistsService.getUserPlaylists(req.user.id);
+    return playlists.map((playlist) =>
+      this.playlistsService.toPlaylistDto(playlist),
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   async getPlaylistById(
     @Param('id') id: number,
@@ -72,7 +84,17 @@ export class PlaylistsController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post(':id/tracks')
+  @Delete(':id')
+  async deletePlaylist(
+    @Param('id') id: number,
+    @Req() req: AuthenticatedRequestDto,
+  ): Promise<{ message: string }> {
+    await this.playlistsService.deletePlaylist(id, req.user.id);
+    return { message: 'Playlist deleted successfully' };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/tracks')
   async addTrackToPlaylist(
     @Param('id') id: number,
     @Body('trackExternalId') trackExternalId: string,
@@ -87,12 +109,17 @@ export class PlaylistsController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete(':id')
-  async deletePlaylist(
+  @Delete(':id/tracks/:trackExternalId')
+  async removeTrackFromPlaylist(
     @Param('id') id: number,
+    @Param('trackId') trackId: number,
     @Req() req: AuthenticatedRequestDto,
-  ): Promise<{ message: string }> {
-    await this.playlistsService.deletePlaylist(id, req.user.id);
-    return { message: 'Playlist deleted successfully' };
+  ): Promise<PlaylistDto> {
+    const playlist = await this.playlistsService.removeTrackFromPlaylist(
+      id,
+      trackId,
+      req.user.id,
+    );
+    return this.playlistsService.toPlaylistDto(playlist);
   }
 }

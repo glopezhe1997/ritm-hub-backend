@@ -49,6 +49,13 @@ export class PlaylistsService {
     });
   }
 
+  async getUserPlaylists(userId: number): Promise<Playlist[]> {
+    return this.playlistRepository.find({
+      where: { owner: { id: userId } },
+      relations: ['tracks'],
+    });
+  }
+
   async getPlaylistById(id: number, userId?: number): Promise<Playlist> {
     const playlist = await this.playlistRepository.findOne({
       where: { id },
@@ -139,14 +146,17 @@ export class PlaylistsService {
 
   async addTrackToPlaylist(
     playlistId: number,
-    trackId: string,
+    trackExternalId: string,
     userId: number,
   ): Promise<Playlist> {
     const playlist = await this.getPlaylistById(playlistId, userId);
     const track =
-      await this.tracksService.findOrCreateTrackByExternalId(trackId);
+      await this.tracksService.findOrCreateTrackByExternalId(trackExternalId);
     if (!track) throw new NotFoundException('Track not found');
-    playlist.tracks.push(track);
+    // Evitar duplicados
+    if (!playlist.tracks.some((t) => t.id === track.id)) {
+      playlist.tracks.push(track);
+    }
     return this.playlistRepository.save(playlist);
   }
 
