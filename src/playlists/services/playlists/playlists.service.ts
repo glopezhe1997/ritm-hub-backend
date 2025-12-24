@@ -13,7 +13,7 @@ import { PlaylistSpotifyDto } from 'src/spotify/services/spotify-api/spotify-api
 import { TrackSpotifyDto } from 'src/tracks/dto/spotify/track-spotify.dto/track-spotify.dto';
 import { PlaylistDto } from 'src/playlists/dto/playlist.dto/playlist.dto';
 import { UserDto } from 'src/users/dto/user.dto/user.dto';
-
+import { CreatePlaylistDto } from 'src/playlists/dto/create-playlist-dto/create-playlist-dto';
 @Injectable()
 export class PlaylistsService {
   constructor(
@@ -64,15 +64,36 @@ export class PlaylistsService {
   }
 
   async createPlaylist(
-    data: Partial<Playlist>,
+    data: CreatePlaylistDto,
     user: UserDto,
   ): Promise<Playlist> {
     const playlist = this.playlistRepository.create({
-      ...data,
-      is_public: false,
+      name: data.name,
+      description: data.description ?? undefined,
+      images: data.images ?? [],
+      is_public: data.is_public ?? false,
       owner: user,
+      tracks: [],
     });
+    console.log('Playlist a guardar:', playlist);
     return this.playlistRepository.save(playlist);
+  }
+
+  async deletePlaylist(playlistId: number, userId: number): Promise<void> {
+    const playlist = await this.playlistRepository.findOne({
+      where: { id: playlistId },
+      relations: ['owner'],
+    });
+
+    if (!playlist) {
+      throw new NotFoundException('Playlist not found');
+    }
+
+    if (playlist.owner?.id !== userId) {
+      throw new ForbiddenException('You can only delete your own playlists');
+    }
+
+    await this.playlistRepository.remove(playlist);
   }
 
   async findOrCreatePlaylistByExternalId(
@@ -143,11 +164,13 @@ export class PlaylistsService {
     return {
       playlist_id: playlist.id,
       name: playlist.name,
+      description: playlist.description ?? undefined,
+      images: playlist.images ?? undefined,
       owner_id: playlist.owner?.id,
       is_public: playlist.is_public,
       external_id: playlist.external_id,
       createdAt: playlist.createdAt,
-      tracks: playlist.tracks.map((track) => ({
+      tracks: (playlist.tracks ?? []).map((track) => ({
         id: track.id,
         title: track.title,
         duration_ms: track.duration_ms,
