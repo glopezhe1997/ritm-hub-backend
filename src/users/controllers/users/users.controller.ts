@@ -8,13 +8,17 @@ import {
   Param,
   Post,
   Put,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/guards/jwt-auth-guard/jwt-auth-guard';
 import { AdminUpdateUserDto } from 'src/users/dto/admin-update-user.dto/admin-update-user.dto';
 import { CreateUserDto } from 'src/users/dto/create-user.dto/create-user.dto';
 import { UpdateUserDto } from 'src/users/dto/update-user.dto/update-user.dto';
 import { UserDto } from 'src/users/dto/user.dto/user.dto';
 import { UsersService } from 'src/users/services/users/users.service';
 
+@UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
   constructor(private userService: UsersService) {}
@@ -27,6 +31,11 @@ export class UsersController {
       throw new NotFoundException(`User with id ${id} not found`);
     }
     return user;
+  }
+
+  @Get('search')
+  async searchUsers(@Query('q') query: string): Promise<UserDto[]> {
+    return await this.userService.searchUsers(query);
   }
 
   // Get all users

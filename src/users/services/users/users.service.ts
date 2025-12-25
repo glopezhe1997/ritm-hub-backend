@@ -5,7 +5,7 @@ import { CreateUserDto } from 'src/users/dto/create-user.dto/create-user.dto';
 import { UpdateUserDto } from 'src/users/dto/update-user.dto/update-user.dto';
 import { UserDto } from 'src/users/dto/user.dto/user.dto';
 import { User } from 'src/users/entities/users.entity';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { plainToInstance } from 'class-transformer';
 
@@ -24,6 +24,17 @@ export class UsersService {
   async findOne(id: number): Promise<UserDto | null> {
     const user = await this.usersRepository.findOneBy({ id });
     return user ? plainToInstance(UserDto, user) : null;
+  }
+
+  async searchUsers(query: string): Promise<UserDto[]> {
+    const users = await this.usersRepository.find({
+      where: [
+        { username: ILike(`%${query}%`) },
+        { email: ILike(`%${query}%`) },
+      ],
+      select: ['id', 'username', 'email'], // Solo los campos necesarios
+    });
+    return users.map((user) => plainToInstance(UserDto, user));
   }
 
   async findOneByEmail(email: string): Promise<UserDto | null> {
