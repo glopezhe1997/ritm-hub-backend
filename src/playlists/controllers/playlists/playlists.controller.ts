@@ -109,7 +109,7 @@ export class PlaylistsController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete(':id/tracks/:trackExternalId')
+  @Delete(':id/tracks/:trackId')
   async removeTrackFromPlaylist(
     @Param('id') id: number,
     @Param('trackId') trackId: number,

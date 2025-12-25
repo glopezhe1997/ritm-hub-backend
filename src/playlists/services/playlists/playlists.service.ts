@@ -166,7 +166,13 @@ export class PlaylistsService {
     userId: number,
   ): Promise<Playlist> {
     const playlist = await this.getPlaylistById(playlistId, userId);
-    playlist.tracks = playlist.tracks.filter((t) => t.id !== trackId);
+    console.log('trackId recibido:', trackId, 'tipo:', typeof trackId); // <-- Aquí ves valor y tipo
+    const trackIdNum = Number(trackId);
+    playlist.tracks = playlist.tracks.filter((t) => t.id !== trackIdNum);
+    console.log(
+      'Tracks después de filtrar:',
+      playlist.tracks.map((t) => t.id),
+    );
     return this.playlistRepository.save(playlist);
   }
 
