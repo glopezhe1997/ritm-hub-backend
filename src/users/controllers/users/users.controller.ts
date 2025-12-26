@@ -9,9 +9,11 @@ import {
   Post,
   Put,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/guards/jwt-auth-guard/jwt-auth-guard';
+import { AuthenticatedRequestDto } from 'src/shared/dto/authenticated-request.dto/authenticated-request.dto';
 import { AdminUpdateUserDto } from 'src/users/dto/admin-update-user.dto/admin-update-user.dto';
 import { CreateUserDto } from 'src/users/dto/create-user.dto/create-user.dto';
 import { UpdateUserDto } from 'src/users/dto/update-user.dto/update-user.dto';
@@ -23,6 +25,17 @@ import { UsersService } from 'src/users/services/users/users.service';
 export class UsersController {
   constructor(private userService: UsersService) {}
 
+  // Search users by username or email excluding running user
+  @Get('search')
+  async searchUsers(
+    @Query('q') query: string,
+    @Req() req: AuthenticatedRequestDto,
+  ): Promise<UserDto[]> {
+    const allUsers = await this.userService.searchUsers(query);
+    const filteredUsers = allUsers.filter((user) => user.id !== req.user.id);
+    return filteredUsers;
+  }
+
   // Get user by id
   @Get(':id')
   async getUser(@Param() id: number): Promise<UserDto | null> {
@@ -31,11 +44,6 @@ export class UsersController {
       throw new NotFoundException(`User with id ${id} not found`);
     }
     return user;
-  }
-
-  @Get('search')
-  async searchUsers(@Query('q') query: string): Promise<UserDto[]> {
-    return await this.userService.searchUsers(query);
   }
 
   // Get all users
