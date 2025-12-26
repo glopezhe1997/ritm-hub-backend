@@ -62,6 +62,7 @@ export class SharePlaylistsService {
       shared_by_user_id: userSharingId,
       shared_with_user_id: userSharedWithId,
     });
+    console.log(sharedPlaylist);
     return this.sharedPlaylistsRepository.save(sharedPlaylist);
   }
 

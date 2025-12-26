@@ -1,5 +1,14 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from 'src/guards/jwt-auth-guard/jwt-auth-guard';
+import { PlaylistDto } from 'src/playlists/dto/playlist.dto/playlist.dto';
 import { AuthenticatedRequestDto } from 'src/shared/dto/authenticated-request.dto/authenticated-request.dto';
 import { SharedPlaylistDto } from 'src/shared_playlists/dto/shared-playlist.dto/shared-playlist.dto';
 import { SharedPlaylistsResultDto } from 'src/shared_playlists/dto/shared-playlists-result.dto/shared-playlists-result.dto';
@@ -9,6 +18,23 @@ import { SharePlaylistsService } from 'src/shared_playlists/services/share-playl
 export class SharePlaylistsController {
   constructor(private sharedPlaylistsService: SharePlaylistsService) {}
 
+  //Get playlists shared with the running user
+  @UseGuards(JwtAuthGuard)
+  @Get('received')
+  async getPlaylistsSharedWithUser(
+    @Req() req: AuthenticatedRequestDto,
+  ): Promise<PlaylistDto[]> {
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('User ID is required');
+    }
+    const sharedPlaylists =
+      await this.sharedPlaylistsService.getSharedPlaylistsForUser(userId);
+
+    return sharedPlaylists;
+  }
+
+  //Share a playlist with another user
   @UseGuards(JwtAuthGuard)
   @Post(':userId/playlists')
   async sharePlaylist(
