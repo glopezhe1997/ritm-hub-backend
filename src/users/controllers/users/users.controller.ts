@@ -12,7 +12,9 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { Roles } from 'src/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/guards/jwt-auth-guard/jwt-auth-guard';
+import { RolesGuardGuard } from 'src/guards/roles-guard/roles-guard.guard';
 import { AuthenticatedRequestDto } from 'src/shared/dto/authenticated-request.dto/authenticated-request.dto';
 import { AdminUpdateUserDto } from 'src/users/dto/admin-update-user.dto/admin-update-user.dto';
 import { CreateUserDto } from 'src/users/dto/create-user.dto/create-user.dto';
@@ -20,12 +22,12 @@ import { UpdateUserDto } from 'src/users/dto/update-user.dto/update-user.dto';
 import { UserDto } from 'src/users/dto/user.dto/user.dto';
 import { UsersService } from 'src/users/services/users/users.service';
 
-@UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
   constructor(private userService: UsersService) {}
 
   // Search users by username or email excluding running user
+  @UseGuards(JwtAuthGuard)
   @Get('search')
   async searchUsers(
     @Query('q') query: string,
@@ -37,8 +39,9 @@ export class UsersController {
   }
 
   // Get user by id
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
-  async getUser(@Param() id: number): Promise<UserDto | null> {
+  async getUser(@Param('id') id: number): Promise<UserDto | null> {
     const user = await this.userService.findOne(id);
     if (!user) {
       throw new NotFoundException(`User with id ${id} not found`);
@@ -47,13 +50,14 @@ export class UsersController {
   }
 
   // Get all users
+  @UseGuards(JwtAuthGuard)
   @Get('')
   async getAllUsers(): Promise<UserDto[]> {
     const users = await this.userService.findAll();
     if (users.length == 0) {
       throw new NotFoundException('No users found');
     }
-    return await this.userService.findAll();
+    return users;
   }
 
   // Create a new user
@@ -77,6 +81,7 @@ export class UsersController {
   }
 
   // Update an existing user profile
+  @UseGuards(JwtAuthGuard)
   @Put(':id')
   async updateUser(
     @Param('id') id: number,
@@ -101,7 +106,9 @@ export class UsersController {
   }
 
   // Admin update user data
+  @UseGuards(JwtAuthGuard, RolesGuardGuard)
   @Put('admin/:id')
+  @Roles('admin')
   async adminUpdateUser(
     @Param('id') id: number,
     @Body() updateData: AdminUpdateUserDto,
@@ -113,7 +120,9 @@ export class UsersController {
     return updated;
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuardGuard)
   @Delete(':id')
+  @Roles('admin')
   async deleteUser(@Param('id') id: number): Promise<{ message: string }> {
     const userToDelete = await this.userService.findOne(id);
     if (!userToDelete) {
