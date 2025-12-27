@@ -14,6 +14,7 @@ import { PlaylistDto } from '../../dto/playlist.dto/playlist.dto';
 import { AuthenticatedRequestDto } from 'src/shared/dto/authenticated-request.dto/authenticated-request.dto';
 import { JwtAuthGuard } from 'src/guards/jwt-auth-guard/jwt-auth-guard';
 import { CreatePlaylistDto } from 'src/playlists/dto/create-playlist-dto/create-playlist-dto';
+import { UpdatePlaylistDto } from 'src/playlists/dto/update-playlist.dto/update-playlist.dto';
 
 @Controller('playlists')
 export class PlaylistsController {
@@ -79,6 +80,22 @@ export class PlaylistsController {
     const playlist = await this.playlistsService.createPlaylist(
       playlistData,
       req.user,
+    );
+    return this.playlistsService.toPlaylistDto(playlist);
+  }
+
+  // Update playlist
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id')
+  async updatePlaylist(
+    @Param('id') id: number,
+    @Body() updateData: UpdatePlaylistDto,
+    @Req() req: AuthenticatedRequestDto,
+  ): Promise<PlaylistDto> {
+    const playlist = await this.playlistsService.updatePlaylist(
+      id,
+      updateData,
+      req.user.id,
     );
     return this.playlistsService.toPlaylistDto(playlist);
   }

@@ -14,6 +14,7 @@ import { TrackSpotifyDto } from 'src/tracks/dto/spotify/track-spotify.dto/track-
 import { PlaylistDto } from 'src/playlists/dto/playlist.dto/playlist.dto';
 import { UserDto } from 'src/users/dto/user.dto/user.dto';
 import { CreatePlaylistDto } from 'src/playlists/dto/create-playlist-dto/create-playlist-dto';
+import { UpdatePlaylistDto } from 'src/playlists/dto/update-playlist.dto/update-playlist.dto';
 @Injectable()
 export class PlaylistsService {
   constructor(
@@ -70,6 +71,7 @@ export class PlaylistsService {
     return playlist;
   }
 
+  // Create a new playlist
   async createPlaylist(
     data: CreatePlaylistDto,
     user: UserDto,
@@ -83,6 +85,32 @@ export class PlaylistsService {
       tracks: [],
     });
     console.log('Playlist a guardar:', playlist);
+    return this.playlistRepository.save(playlist);
+  }
+
+  // Update an existing playlist
+  async updatePlaylist(
+    playlistId: number,
+    updateData: UpdatePlaylistDto,
+    userId: number,
+  ): Promise<Playlist> {
+    const playlist = await this.playlistRepository.findOne({
+      where: { id: playlistId },
+      relations: ['owner'],
+    });
+    if (!playlist) throw new NotFoundException('Playlist not found');
+    if (playlist.owner?.id !== userId) {
+      throw new ForbiddenException('You can only edit your own playlists');
+    }
+
+    // Only update the fields that were sent
+    if (updateData.name !== undefined) playlist.name = updateData.name;
+    if (updateData.description !== undefined)
+      playlist.description = updateData.description;
+    if (updateData.images !== undefined) playlist.images = updateData.images;
+    if (updateData.is_public !== undefined)
+      playlist.is_public = updateData.is_public;
+
     return this.playlistRepository.save(playlist);
   }
 
