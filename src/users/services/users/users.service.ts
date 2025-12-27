@@ -100,4 +100,19 @@ export class UsersService {
     const savedUser = await this.usersRepository.save(newUser);
     return plainToInstance(UserDto, savedUser);
   }
+
+  // Count users
+  async countUsers(): Promise<number> {
+    return this.usersRepository.count();
+  }
+
+  // Count active users
+  async countActiveUsers(): Promise<number> {
+    return this.usersRepository.count({ where: { isActive: true } });
+  }
+
+  // Count deactived users
+  async countDeactivatedUsers(): Promise<number> {
+    return this.usersRepository.count({ where: { isActive: false } });
+  }
 }

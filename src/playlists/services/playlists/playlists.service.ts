@@ -31,6 +31,21 @@ export class PlaylistsService {
     });
   }
 
+  //count playlists
+  async countPlaylists(): Promise<number> {
+    return this.playlistRepository.count();
+  }
+
+  // Count public playlists
+  async countPublicPlaylists(): Promise<number> {
+    return this.playlistRepository.count({ where: { is_public: true } });
+  }
+
+  // Count private playlists
+  async countPrivatePlaylists(): Promise<number> {
+    return this.playlistRepository.count({ where: { is_public: false } });
+  }
+
   async getTrendingPlaylists(): Promise<PlaylistSpotifyDto[]> {
     // Buscar playlists públicas populares en Spotify
     const spotifyResult =
