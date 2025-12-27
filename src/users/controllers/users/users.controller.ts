@@ -131,4 +131,11 @@ export class UsersController {
     await this.userService.remove(id);
     return { message: `User with id ${id} has been deleted` };
   }
+
+  @UseGuards(JwtAuthGuard, RolesGuardGuard)
+  @Roles('admin')
+  @Post('create-admin')
+  async createAdmin(@Body() user: CreateUserDto): Promise<UserDto> {
+    return this.userService.createAdmin(user);
+  }
 }

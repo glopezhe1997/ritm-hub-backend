@@ -88,4 +88,16 @@ export class UsersService {
     const updatedUser = await this.usersRepository.findOneBy({ id });
     return updatedUser ? plainToInstance(UserDto, updatedUser) : null;
   }
+
+  // Create admin user
+  async createAdmin(user: CreateUserDto): Promise<UserDto> {
+    const hashedPassword = await bcrypt.hash(user.password, 10);
+    const newUser = this.usersRepository.create({
+      ...user,
+      password: hashedPassword,
+      role: 'admin', // <-- Aquí el rol es admin
+    });
+    const savedUser = await this.usersRepository.save(newUser);
+    return plainToInstance(UserDto, savedUser);
+  }
 }

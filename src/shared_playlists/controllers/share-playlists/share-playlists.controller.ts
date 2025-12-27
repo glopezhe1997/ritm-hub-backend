@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Post,
+  Param,
   Req,
   UnauthorizedException,
   UseGuards,
@@ -52,5 +53,22 @@ export class SharePlaylistsController {
       shared_by_user_id: shared.shared_by_user_id,
       shared_at: shared.shared_at,
     };
+  }
+
+  //Get a shared playlist by ID
+  @UseGuards(JwtAuthGuard)
+  @Get('playlists/:playlistId')
+  async getSharedPlaylistById(
+    @Req() req: AuthenticatedRequestDto,
+    @Param('playlistId') playlistId: number,
+  ): Promise<PlaylistDto> {
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('User ID is required');
+    }
+    return this.sharedPlaylistsService.getSharedPlaylistById(
+      playlistId,
+      userId,
+    );
   }
 }

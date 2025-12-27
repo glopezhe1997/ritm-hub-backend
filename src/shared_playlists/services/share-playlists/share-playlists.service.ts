@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SharedPlaylists } from 'src/shared_playlists/entities/sharedPlaylists.entity';
 import { Playlist } from 'src/playlists/entities/playlist.entity';
@@ -90,5 +90,38 @@ export class SharePlaylistsService {
         preview_url: track.preview_url ?? '',
       })),
     }));
+  }
+
+  //Get Shared Playlist by ID
+  async getSharedPlaylistById(
+    playlistId: number,
+    userId: number,
+  ): Promise<PlaylistDto> {
+    const shared = await this.sharedPlaylistsRepository.findOne({
+      where: { playlist_id: playlistId, shared_with_user_id: userId },
+      relations: ['playlist', 'playlist.owner', 'playlist.tracks'],
+    });
+    if (!shared) {
+      throw new NotFoundException('Shared playlist not found');
+    }
+    const p = shared.playlist;
+    return {
+      playlist_id: p.id,
+      name: p.name,
+      description: p.description,
+      images: p.images,
+      owner_id: p.owner?.id,
+      is_public: p.is_public,
+      external_id: p.external_id,
+      createdAt: p.createdAt,
+      tracks: (p.tracks ?? []).map((track) => ({
+        id: track.id,
+        title: track.title,
+        duration_ms: track.duration_ms,
+        album_id: track.album_id,
+        external_id: track.external_id,
+        preview_url: track.preview_url ?? '',
+      })),
+    };
   }
 }
