@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
+import { UsersService } from 'src/users/services/users/users.service';
+import { UserDto } from 'src/users/dto/user.dto/user.dto';
 
 interface JwtPayload {
   sub: number;
@@ -10,7 +12,10 @@ interface JwtPayload {
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(configService: ConfigService) {
+  constructor(
+    configService: ConfigService,
+    private usersService: UsersService,
+  ) {
     const secret = configService.get<string>('JWT_SECRET');
     if (!secret) throw new Error('JWT_SECRET is not defined');
     super({
@@ -20,7 +25,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  validate(payload: JwtPayload) {
-    return { id: payload.sub, email: payload.email };
+  async validate(payload: JwtPayload): Promise<UserDto> {
+    const user = await this.usersService.findOne(payload.sub);
+    if (!user) throw new UnauthorizedException();
+    return user;
   }
 }
