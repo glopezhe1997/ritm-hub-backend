@@ -18,6 +18,17 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
+
+    //Inactive user
+    if (!user.isActive) {
+      throw new UnauthorizedException('User is inactive, contact support');
+    }
+
+    //Blocked user
+    if (user.isBlocked) {
+      throw new UnauthorizedException('User is blocked, contact support');
+    }
+
     // Compare passwords
     const passwordValid = await bcrypt.compare(
       signInData.password,

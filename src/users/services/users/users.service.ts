@@ -101,6 +101,34 @@ export class UsersService {
     return plainToInstance(UserDto, savedUser);
   }
 
+  //Inactive user
+  async deactivateUser(id: number): Promise<UserDto | null> {
+    await this.usersRepository.update(id, { isActive: false });
+    const updatedUser = await this.usersRepository.findOneBy({ id });
+    return updatedUser ? plainToInstance(UserDto, updatedUser) : null;
+  }
+
+  // Activate user
+  async activateUser(id: number): Promise<UserDto | null> {
+    await this.usersRepository.update(id, { isActive: true });
+    const updatedUser = await this.usersRepository.findOneBy({ id });
+    return updatedUser ? plainToInstance(UserDto, updatedUser) : null;
+  }
+
+  //Block user
+  async blockUser(id: number): Promise<UserDto | null> {
+    await this.usersRepository.update(id, { isBlocked: true });
+    const updatedUser = await this.usersRepository.findOneBy({ id });
+    return updatedUser ? plainToInstance(UserDto, updatedUser) : null;
+  }
+
+  // Unblock user
+  async unblockUser(id: number): Promise<UserDto | null> {
+    await this.usersRepository.update(id, { isBlocked: false });
+    const updatedUser = await this.usersRepository.findOneBy({ id });
+    return updatedUser ? plainToInstance(UserDto, updatedUser) : null;
+  }
+
   // Count users
   async countUsers(): Promise<number> {
     return this.usersRepository.count();
