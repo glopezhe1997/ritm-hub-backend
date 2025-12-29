@@ -32,7 +32,7 @@ export class UsersService {
         { username: ILike(`%${query}%`) },
         { email: ILike(`%${query}%`) },
       ],
-      select: ['id', 'username', 'email'],
+      select: ['id', 'username', 'email', 'role', 'isActive', 'isBlocked'],
     });
     return users.map((user) => plainToInstance(UserDto, user));
   }

@@ -33,22 +33,37 @@ export class AdminController {
 
   // Unblock User by Id
   @Patch('users/unblock/:id')
-  async unblockUserById(@Param('id') id: number): Promise<UserDto | null> {
+  async unblockUserById(
+    @Param('id') id: number,
+  ): Promise<{ message: string; user: UserDto | null }> {
     const user = await this.adminService.unblockUserById(id);
-    return user;
+    return {
+      message: 'User unblocked successfully',
+      user,
+    };
   }
 
   // Deactivate User by Id
   @Patch('users/deactivate/:id')
-  async deactivateUserById(@Param('id') id: number): Promise<UserDto | null> {
+  async deactivateUserById(
+    @Param('id') id: number,
+  ): Promise<{ message: string; user: UserDto | null }> {
     const user = await this.adminService.deactivateUserById(id);
-    return user;
+    return {
+      message: 'User deactivated successfully',
+      user,
+    };
   }
 
   // Activate User by Id
   @Patch('users/activate/:id')
-  async activateUserById(@Param('id') id: number): Promise<UserDto | null> {
+  async activateUserById(
+    @Param('id') id: number,
+  ): Promise<{ message: string; user: UserDto | null }> {
     const user = await this.adminService.activateUserById(id);
-    return user;
+    return {
+      message: 'User activated successfully',
+      user,
+    };
   }
 }
