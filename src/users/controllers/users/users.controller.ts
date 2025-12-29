@@ -3,6 +3,7 @@ import {
   ConflictException,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   NotFoundException,
   Param,
@@ -86,7 +87,11 @@ export class UsersController {
   async updateUser(
     @Param('id') id: number,
     @Body() updateData: UpdateUserDto,
+    @Req() req: AuthenticatedRequestDto,
   ): Promise<UserDto> {
+    if (req.user.id !== id) {
+      throw new ForbiddenException('You can only update your own profile');
+    }
     if (updateData.username) {
       const usernameExists = await this.userService.findOneByUsername(
         updateData.username,
