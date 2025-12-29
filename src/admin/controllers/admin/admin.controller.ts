@@ -66,4 +66,17 @@ export class AdminController {
       user,
     };
   }
+
+  // Change User Role by Id
+  @Patch('users/role/:id/:role')
+  async changeUserRoleById(
+    @Param('id') id: number,
+    @Param('role') role: string,
+  ): Promise<{ message: string; user: UserDto | null }> {
+    const user = await this.adminService.changeUserRoleById(id, role);
+    return {
+      message: `User role changed to ${role} successfully`,
+      user,
+    };
+  }
 }

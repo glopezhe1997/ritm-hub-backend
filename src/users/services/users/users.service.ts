@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AdminUpdateUserDto } from 'src/users/dto/admin-update-user.dto/admin-update-user.dto';
 import { CreateUserDto } from 'src/users/dto/create-user.dto/create-user.dto';
@@ -127,6 +131,26 @@ export class UsersService {
     await this.usersRepository.update(id, { isBlocked: false });
     const updatedUser = await this.usersRepository.findOneBy({ id });
     return updatedUser ? plainToInstance(UserDto, updatedUser) : null;
+  }
+
+  // Change user role
+  async changeUserRole(id: number, role: string): Promise<UserDto | null> {
+    const validRoles = ['user', 'admin'];
+    if (!validRoles.includes(role)) {
+      throw new BadRequestException('Invalid role');
+    }
+
+    const user = await this.usersRepository.findOneBy({ id });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.role === role) {
+      throw new BadRequestException('User already has this role');
+    }
+    user.role = role;
+    const updatedUser = await this.usersRepository.save(user);
+    return plainToInstance(UserDto, updatedUser);
   }
 
   // Count users

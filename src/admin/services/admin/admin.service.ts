@@ -53,4 +53,9 @@ export class AdminService {
   async activateUserById(id: number): Promise<UserDto | null> {
     return await this.usersService.activateUser(id);
   }
+
+  // Change user role by id
+  async changeUserRoleById(id: number, role: string): Promise<UserDto | null> {
+    return await this.usersService.changeUserRole(id, role);
+  }
 }
