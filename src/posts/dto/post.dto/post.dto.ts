@@ -1,19 +1,35 @@
-import { IsDate, IsInt, IsOptional, IsString } from 'class-validator';
+import {
+  IsDateString,
+  IsEnum,
+  IsInt,
+  IsObject,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import { PostStatus } from 'src/posts/entities/posts.entity';
+import { TrackDto } from 'src/tracks/dto/track.dto/track.dto';
+import { UserDto } from 'src/users/dto/user.dto/user.dto';
 
 export class PostDto {
   @IsInt()
   post_id: number;
 
   @IsString()
+  title: string;
+
+  @IsString()
   content: string;
 
-  @IsInt()
-  owner_id: number;
+  @IsEnum(PostStatus)
+  status: PostStatus;
 
-  @IsDate()
+  @IsObject()
+  owner: UserDto;
+
+  @IsDateString()
   createdAt: Date;
 
-  @IsInt()
+  @IsObject()
   @IsOptional()
-  track_id?: number;
+  track?: TrackDto;
 }

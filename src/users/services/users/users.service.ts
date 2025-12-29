@@ -36,7 +36,16 @@ export class UsersService {
         { username: ILike(`%${query}%`) },
         { email: ILike(`%${query}%`) },
       ],
-      select: ['id', 'username', 'email', 'role', 'isActive', 'isBlocked'],
+      select: [
+        'id',
+        'username',
+        'email',
+        'role',
+        'isActive',
+        'isBlocked',
+        'name',
+        'Birthdate',
+      ],
     });
     return users.map((user) => plainToInstance(UserDto, user));
   }

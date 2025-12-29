@@ -89,14 +89,16 @@ export class UsersController {
     @Body() updateData: UpdateUserDto,
     @Req() req: AuthenticatedRequestDto,
   ): Promise<UserDto> {
-    if (req.user.id !== id) {
+    console.log(updateData);
+    if (Number(req.user.id) !== Number(id)) {
+      console.log('req.user.id:', req.user.id, 'id:', id);
       throw new ForbiddenException('You can only update your own profile');
     }
     if (updateData.username) {
       const usernameExists = await this.userService.findOneByUsername(
         updateData.username,
       );
-      if (usernameExists && usernameExists.id !== id) {
+      if (usernameExists && Number(usernameExists.id) !== Number(id)) {
         throw new ConflictException(
           `Username ${updateData.username} already exists`,
         );
