@@ -1,15 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Post } from 'src/posts/entities/posts.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CreatePostDto } from 'src/posts/dto/create-post.dto/create-post.dto';
 import { PostDto } from 'src/posts/dto/post.dto/post.dto';
+import { FollowsService } from 'src/follows/services/follows/follows.service';
 
 @Injectable()
 export class PostsService {
   constructor(
     @InjectRepository(Post)
     private postsRepository: Repository<Post>,
+    private followsService: FollowsService,
   ) {}
 
   //Get all Owner's posts
@@ -17,6 +19,34 @@ export class PostsService {
     const posts = await this.postsRepository.find({
       where: { owner: { id: ownerId } },
       relations: ['owner', 'track'],
+    });
+    return this.toPostsDto(posts);
+  }
+
+  // Get post by ID
+  async getPostById(postId: number): Promise<PostDto | null> {
+    const post = await this.postsRepository.findOne({
+      where: { post_id: postId },
+      relations: ['owner', 'track'],
+    });
+    if (!post) {
+      return null;
+    }
+    return this.toPostDto(post);
+  }
+
+  // Get all followed users' posts
+  async getAllFollowedPosts(userId: number): Promise<PostDto[]> {
+    const followedUserIds = await this.followsService.getFolloweesIds(userId);
+
+    if (followedUserIds.length === 0) {
+      return [];
+    }
+
+    const posts = await this.postsRepository.find({
+      where: { owner: { id: In(followedUserIds) } },
+      relations: ['owner', 'track'],
+      order: { createdAt: 'DESC' },
     });
     return this.toPostsDto(posts);
   }

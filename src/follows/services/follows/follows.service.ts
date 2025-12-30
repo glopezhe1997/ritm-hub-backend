@@ -66,4 +66,12 @@ export class FollowsService {
     });
     return follows.map((f) => plainToInstance(UserDto, f.followee));
   }
+
+  // Get followees Ids
+  async getFolloweesIds(userId: number): Promise<number[]> {
+    const follows = await this.followsRepository.find({
+      where: { follower_Id: userId },
+    });
+    return follows.map((f) => f.followee_Id);
+  }
 }
