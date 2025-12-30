@@ -20,6 +20,15 @@ export class PostsController {
     return this.postsService.getAllPostsByOwner(ownerId);
   }
 
+  //Get all followed users' posts
+  @Get('feed')
+  async getAllFollowedPosts(
+    @Req() req: AuthenticatedRequestDto,
+  ): Promise<PostDto[]> {
+    const userId = req.user.id;
+    return this.postsService.getAllFollowedPosts(userId);
+  }
+
   //Create post
   @Post('create-post')
   async createPost(
