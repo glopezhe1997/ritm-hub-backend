@@ -1,10 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Post } from 'src/posts/entities/posts.entity';
 import { In, Repository } from 'typeorm';
 import { CreatePostDto } from 'src/posts/dto/create-post.dto/create-post.dto';
 import { PostDto } from 'src/posts/dto/post.dto/post.dto';
 import { FollowsService } from 'src/follows/services/follows/follows.service';
+import { TracksService } from 'src/tracks/services/tracks/tracks.service';
+import { DeepPartial } from 'typeorm';
+import { TrackDto } from 'src/tracks/dto/track.dto/track.dto';
 
 @Injectable()
 export class PostsService {
@@ -12,6 +15,7 @@ export class PostsService {
     @InjectRepository(Post)
     private postsRepository: Repository<Post>,
     private followsService: FollowsService,
+    private tracksService: TracksService,
   ) {}
 
   //Get all Owner's posts
@@ -56,10 +60,26 @@ export class PostsService {
     ownerId: number,
     createPostData: CreatePostDto,
   ): Promise<PostDto> {
-    const newPost = this.postsRepository.create({
-      ...createPostData,
-      owner: { id: ownerId }, // Relaciona el post con el usuario
-    });
+    let track;
+    if (createPostData.track_id) {
+      track = await this.tracksService.findOrCreateTrackByExternalId(
+        String(createPostData.track_id),
+      );
+      if (!track) throw new NotFoundException('Track not found');
+    }
+
+    const postData: DeepPartial<Post> = {
+      title: createPostData.title,
+      content: createPostData.content,
+      status: createPostData.status,
+      owner: { id: ownerId },
+    };
+
+    if (track) {
+      postData.track = track as TrackDto;
+    }
+
+    const newPost = this.postsRepository.create(postData);
     const savedPost = await this.postsRepository.save(newPost);
     return this.toPostDto(savedPost);
   }

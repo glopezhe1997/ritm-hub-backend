@@ -12,7 +12,7 @@ export class CreatePostDto {
   @IsEnum(PostStatus)
   status: PostStatus;
 
-  @IsObject()
+  @IsString()
   @IsOptional()
-  track?: TrackDto;
+  track_id?: string;
 }

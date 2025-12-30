@@ -1,7 +1,6 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
-import { FollowDto } from 'src/follows/dto/follow.dto/follow.dto';
 import { Follow } from 'src/follows/entities/follows.entity';
 import { UserDto } from 'src/users/dto/user.dto/user.dto';
 import { Repository } from 'typeorm';
@@ -14,22 +13,22 @@ export class FollowsService {
   ) {}
 
   // Follow user
-  async followUser(followData: FollowDto): Promise<UserDto> {
+  async followUser(followerId: number, followeeId: number): Promise<UserDto> {
     const exists = await this.followsRepository.findOneBy({
-      follower_Id: followData.follower_Id,
-      followee_Id: followData.followee_Id,
+      follower_Id: followerId,
+      followee_Id: followeeId,
     });
     if (exists) throw new ConflictException('Already following');
 
     const follow = this.followsRepository.create({
-      follower_Id: followData.follower_Id,
-      followee_Id: followData.followee_Id,
+      follower_Id: followerId,
+      followee_Id: followeeId,
     });
     await this.followsRepository.save(follow);
 
     // Carga el usuario seguido (followee)
     const followee = await this.followsRepository.manager.findOne('User', {
-      where: { id: followData.followee_Id },
+      where: { id: followeeId },
     });
     return plainToInstance(UserDto, followee);
   }

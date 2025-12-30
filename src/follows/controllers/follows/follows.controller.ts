@@ -35,15 +35,16 @@ export class FollowsController {
 
   // Follow User
   @Post('follow')
+  @Post('follow')
   async followUser(
     @Body() followData: FollowDto,
     @Req() req: AuthenticatedRequestDto,
   ): Promise<FollowResponseDto> {
     const userRequesting = req.user.id;
-    if (userRequesting !== followData.follower_Id) {
-      throw new ConflictException('Cannot follow as another user');
-    }
-    const user = await this.followsService.followUser(followData);
+    const user = await this.followsService.followUser(
+      userRequesting,
+      followData.followee_Id,
+    );
     return {
       response: 'Followed user successfully',
       user,
@@ -57,11 +58,8 @@ export class FollowsController {
     @Req() req: AuthenticatedRequestDto,
   ): Promise<FollowResponseDto> {
     const userRequesting = req.user.id;
-    if (userRequesting !== followData.follower_Id) {
-      throw new ConflictException('Cannot unfollow as another user');
-    }
     await this.followsService.unfollowUser(
-      followData.follower_Id,
+      userRequesting,
       followData.followee_Id,
     );
     return {
@@ -76,7 +74,10 @@ export class FollowsController {
     @Param('userId') userId: number,
     @Req() req: AuthenticatedRequestDto,
   ): Promise<UserDto[]> {
-    const userRequesting = req.user.id;
+    const userRequesting = Number(req.user.id);
+    userId = Number(userId);
+    console.log('userRequesting:', userRequesting);
+    console.log('userId:', userId); // Asegúrate de que userId es un número
     if (userRequesting !== userId) {
       throw new ConflictException('Cannot view followees of other users');
     }

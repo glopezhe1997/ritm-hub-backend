@@ -1,4 +1,3 @@
 export interface FollowDto {
-  follower_Id: number;
-  followee_Id: number;
+  followee_Id: number; // ID del usuario que es seguido
 }
