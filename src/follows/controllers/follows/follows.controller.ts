@@ -77,7 +77,7 @@ export class FollowsController {
     const userRequesting = Number(req.user.id);
     userId = Number(userId);
     console.log('userRequesting:', userRequesting);
-    console.log('userId:', userId); // Asegúrate de que userId es un número
+    console.log('userId:', userId);
     if (userRequesting !== userId) {
       throw new ConflictException('Cannot view followees of other users');
     }
