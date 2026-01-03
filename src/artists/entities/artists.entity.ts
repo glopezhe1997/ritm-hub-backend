@@ -15,9 +15,6 @@ export class Artist {
   @Column()
   followers: number;
 
-  @Column('simple-array')
-  genres: string[];
-
   @Column({ type: 'varchar', nullable: true })
   img_url: string | null;
 
