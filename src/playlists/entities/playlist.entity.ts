@@ -19,6 +19,12 @@ export class Playlist {
   @Column()
   name: string;
 
+  @Column({ type: 'text', nullable: true })
+  description?: string | undefined;
+
+  @Column('text', { array: true, nullable: true })
+  images?: string[];
+
   @Column({ default: false })
   is_public: boolean;
 

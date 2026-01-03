@@ -18,6 +18,17 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
+
+    //Inactive user
+    if (!user.isActive) {
+      throw new UnauthorizedException('User is inactive, contact support');
+    }
+
+    //Blocked user
+    if (user.isBlocked) {
+      throw new UnauthorizedException('User is blocked, contact support');
+    }
+
     // Compare passwords
     const passwordValid = await bcrypt.compare(
       signInData.password,
@@ -27,7 +38,14 @@ export class AuthService {
     if (!passwordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    const payload = { sub: user.id, email: user.email };
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      username: user.username,
+      name: user.name,
+      Birthdate: user.Birthdate,
+    };
 
     return {
       access_token: await this.jwtService.signAsync(payload),

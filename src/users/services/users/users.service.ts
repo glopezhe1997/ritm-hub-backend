@@ -1,11 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AdminUpdateUserDto } from 'src/users/dto/admin-update-user.dto/admin-update-user.dto';
 import { CreateUserDto } from 'src/users/dto/create-user.dto/create-user.dto';
 import { UpdateUserDto } from 'src/users/dto/update-user.dto/update-user.dto';
 import { UserDto } from 'src/users/dto/user.dto/user.dto';
 import { User } from 'src/users/entities/users.entity';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { plainToInstance } from 'class-transformer';
 
@@ -24,6 +28,26 @@ export class UsersService {
   async findOne(id: number): Promise<UserDto | null> {
     const user = await this.usersRepository.findOneBy({ id });
     return user ? plainToInstance(UserDto, user) : null;
+  }
+
+  async searchUsers(query: string): Promise<UserDto[]> {
+    const users = await this.usersRepository.find({
+      where: [
+        { username: ILike(`%${query}%`) },
+        { email: ILike(`%${query}%`) },
+      ],
+      select: [
+        'id',
+        'username',
+        'email',
+        'role',
+        'isActive',
+        'isBlocked',
+        'name',
+        'Birthdate',
+      ],
+    });
+    return users.map((user) => plainToInstance(UserDto, user));
   }
 
   async findOneByEmail(email: string): Promise<UserDto | null> {
@@ -76,5 +100,80 @@ export class UsersService {
     await this.usersRepository.update(id, updateData);
     const updatedUser = await this.usersRepository.findOneBy({ id });
     return updatedUser ? plainToInstance(UserDto, updatedUser) : null;
+  }
+
+  // Create admin user
+  async createAdmin(user: CreateUserDto): Promise<UserDto> {
+    const hashedPassword = await bcrypt.hash(user.password, 10);
+    const newUser = this.usersRepository.create({
+      ...user,
+      password: hashedPassword,
+      role: 'admin', // <-- Aquí el rol es admin
+    });
+    const savedUser = await this.usersRepository.save(newUser);
+    return plainToInstance(UserDto, savedUser);
+  }
+
+  //Inactive user
+  async deactivateUser(id: number): Promise<UserDto | null> {
+    await this.usersRepository.update(id, { isActive: false });
+    const updatedUser = await this.usersRepository.findOneBy({ id });
+    return updatedUser ? plainToInstance(UserDto, updatedUser) : null;
+  }
+
+  // Activate user
+  async activateUser(id: number): Promise<UserDto | null> {
+    await this.usersRepository.update(id, { isActive: true });
+    const updatedUser = await this.usersRepository.findOneBy({ id });
+    return updatedUser ? plainToInstance(UserDto, updatedUser) : null;
+  }
+
+  //Block user
+  async blockUser(id: number): Promise<UserDto | null> {
+    await this.usersRepository.update(id, { isBlocked: true });
+    const updatedUser = await this.usersRepository.findOneBy({ id });
+    return updatedUser ? plainToInstance(UserDto, updatedUser) : null;
+  }
+
+  // Unblock user
+  async unblockUser(id: number): Promise<UserDto | null> {
+    await this.usersRepository.update(id, { isBlocked: false });
+    const updatedUser = await this.usersRepository.findOneBy({ id });
+    return updatedUser ? plainToInstance(UserDto, updatedUser) : null;
+  }
+
+  // Change user role
+  async changeUserRole(id: number, role: string): Promise<UserDto | null> {
+    const validRoles = ['user', 'admin'];
+    if (!validRoles.includes(role)) {
+      throw new BadRequestException('Invalid role');
+    }
+
+    const user = await this.usersRepository.findOneBy({ id });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.role === role) {
+      throw new BadRequestException('User already has this role');
+    }
+    user.role = role;
+    const updatedUser = await this.usersRepository.save(user);
+    return plainToInstance(UserDto, updatedUser);
+  }
+
+  // Count users
+  async countUsers(): Promise<number> {
+    return this.usersRepository.count();
+  }
+
+  // Count active users
+  async countActiveUsers(): Promise<number> {
+    return this.usersRepository.count({ where: { isActive: true } });
+  }
+
+  // Count deactived users
+  async countDeactivatedUsers(): Promise<number> {
+    return this.usersRepository.count({ where: { isActive: false } });
   }
 }

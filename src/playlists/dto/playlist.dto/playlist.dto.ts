@@ -14,6 +14,14 @@ export class PlaylistDto {
   @IsString()
   name: string;
 
+  @IsString()
+  @IsOptional()
+  description?: string | undefined;
+
+  @IsString({ each: true })
+  @IsOptional()
+  images?: string[];
+
   @IsNumber()
   @IsOptional()
   owner_id?: number;

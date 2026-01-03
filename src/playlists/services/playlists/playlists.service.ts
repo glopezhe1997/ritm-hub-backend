@@ -13,7 +13,8 @@ import { PlaylistSpotifyDto } from 'src/spotify/services/spotify-api/spotify-api
 import { TrackSpotifyDto } from 'src/tracks/dto/spotify/track-spotify.dto/track-spotify.dto';
 import { PlaylistDto } from 'src/playlists/dto/playlist.dto/playlist.dto';
 import { UserDto } from 'src/users/dto/user.dto/user.dto';
-
+import { CreatePlaylistDto } from 'src/playlists/dto/create-playlist-dto/create-playlist-dto';
+import { UpdatePlaylistDto } from 'src/playlists/dto/update-playlist.dto/update-playlist.dto';
 @Injectable()
 export class PlaylistsService {
   constructor(
@@ -28,6 +29,21 @@ export class PlaylistsService {
       where: { is_public: true },
       relations: ['tracks'],
     });
+  }
+
+  //count playlists
+  async countPlaylists(): Promise<number> {
+    return this.playlistRepository.count();
+  }
+
+  // Count public playlists
+  async countPublicPlaylists(): Promise<number> {
+    return this.playlistRepository.count({ where: { is_public: true } });
+  }
+
+  // Count private playlists
+  async countPrivatePlaylists(): Promise<number> {
+    return this.playlistRepository.count({ where: { is_public: false } });
   }
 
   async getTrendingPlaylists(): Promise<PlaylistSpotifyDto[]> {
@@ -49,6 +65,13 @@ export class PlaylistsService {
     });
   }
 
+  async getUserPlaylists(userId: number): Promise<Playlist[]> {
+    return this.playlistRepository.find({
+      where: { owner: { id: userId } },
+      relations: ['tracks'],
+    });
+  }
+
   async getPlaylistById(id: number, userId?: number): Promise<Playlist> {
     const playlist = await this.playlistRepository.findOne({
       where: { id },
@@ -63,16 +86,64 @@ export class PlaylistsService {
     return playlist;
   }
 
+  // Create a new playlist
   async createPlaylist(
-    data: Partial<Playlist>,
+    data: CreatePlaylistDto,
     user: UserDto,
   ): Promise<Playlist> {
     const playlist = this.playlistRepository.create({
-      ...data,
-      is_public: false,
+      name: data.name,
+      description: data.description ?? undefined,
+      images: data.images ?? [],
+      is_public: data.is_public ?? false,
       owner: user,
+      tracks: [],
     });
+    console.log('Playlist a guardar:', playlist);
     return this.playlistRepository.save(playlist);
+  }
+
+  // Update an existing playlist
+  async updatePlaylist(
+    playlistId: number,
+    updateData: UpdatePlaylistDto,
+    userId: number,
+  ): Promise<Playlist> {
+    const playlist = await this.playlistRepository.findOne({
+      where: { id: playlistId },
+      relations: ['owner'],
+    });
+    if (!playlist) throw new NotFoundException('Playlist not found');
+    if (playlist.owner?.id !== userId) {
+      throw new ForbiddenException('You can only edit your own playlists');
+    }
+
+    // Only update the fields that were sent
+    if (updateData.name !== undefined) playlist.name = updateData.name;
+    if (updateData.description !== undefined)
+      playlist.description = updateData.description;
+    if (updateData.images !== undefined) playlist.images = updateData.images;
+    if (updateData.is_public !== undefined)
+      playlist.is_public = updateData.is_public;
+
+    return this.playlistRepository.save(playlist);
+  }
+
+  async deletePlaylist(playlistId: number, userId: number): Promise<void> {
+    const playlist = await this.playlistRepository.findOne({
+      where: { id: playlistId },
+      relations: ['owner'],
+    });
+
+    if (!playlist) {
+      throw new NotFoundException('Playlist not found');
+    }
+
+    if (playlist.owner?.id !== userId) {
+      throw new ForbiddenException('You can only delete your own playlists');
+    }
+
+    await this.playlistRepository.remove(playlist);
   }
 
   async findOrCreatePlaylistByExternalId(
@@ -118,14 +189,17 @@ export class PlaylistsService {
 
   async addTrackToPlaylist(
     playlistId: number,
-    trackId: string,
+    trackExternalId: string,
     userId: number,
   ): Promise<Playlist> {
     const playlist = await this.getPlaylistById(playlistId, userId);
     const track =
-      await this.tracksService.findOrCreateTrackByExternalId(trackId);
+      await this.tracksService.findOrCreateTrackByExternalId(trackExternalId);
     if (!track) throw new NotFoundException('Track not found');
-    playlist.tracks.push(track);
+    // Evitar duplicados
+    if (!playlist.tracks.some((t) => t.id === track.id)) {
+      playlist.tracks.push(track);
+    }
     return this.playlistRepository.save(playlist);
   }
 
@@ -135,7 +209,13 @@ export class PlaylistsService {
     userId: number,
   ): Promise<Playlist> {
     const playlist = await this.getPlaylistById(playlistId, userId);
-    playlist.tracks = playlist.tracks.filter((t) => t.id !== trackId);
+    console.log('trackId recibido:', trackId, 'tipo:', typeof trackId); // <-- Aquí ves valor y tipo
+    const trackIdNum = Number(trackId);
+    playlist.tracks = playlist.tracks.filter((t) => t.id !== trackIdNum);
+    console.log(
+      'Tracks después de filtrar:',
+      playlist.tracks.map((t) => t.id),
+    );
     return this.playlistRepository.save(playlist);
   }
 
@@ -143,11 +223,13 @@ export class PlaylistsService {
     return {
       playlist_id: playlist.id,
       name: playlist.name,
+      description: playlist.description ?? undefined,
+      images: playlist.images ?? undefined,
       owner_id: playlist.owner?.id,
       is_public: playlist.is_public,
       external_id: playlist.external_id,
       createdAt: playlist.createdAt,
-      tracks: playlist.tracks.map((track) => ({
+      tracks: (playlist.tracks ?? []).map((track) => ({
         id: track.id,
         title: track.title,
         duration_ms: track.duration_ms,

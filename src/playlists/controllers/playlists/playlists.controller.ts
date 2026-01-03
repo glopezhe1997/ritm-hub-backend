@@ -1,11 +1,20 @@
-import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { PlaylistsService } from '../../services/playlists/playlists.service';
 import { PlaylistDto } from '../../dto/playlist.dto/playlist.dto';
 import { AuthenticatedRequestDto } from 'src/shared/dto/authenticated-request.dto/authenticated-request.dto';
-
-export class CreatePlaylistDto {
-  name: string;
-}
+import { JwtAuthGuard } from 'src/guards/jwt-auth-guard/jwt-auth-guard';
+import { CreatePlaylistDto } from 'src/playlists/dto/create-playlist-dto/create-playlist-dto';
+import { UpdatePlaylistDto } from 'src/playlists/dto/update-playlist.dto/update-playlist.dto';
 
 @Controller('playlists')
 export class PlaylistsController {
@@ -24,6 +33,7 @@ export class PlaylistsController {
     );
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('private')
   async getPrivatePlaylists(
     @Req() req: AuthenticatedRequestDto,
@@ -36,6 +46,18 @@ export class PlaylistsController {
     );
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('user')
+  async getUserPlaylists(
+    @Req() req: AuthenticatedRequestDto,
+  ): Promise<PlaylistDto[]> {
+    const playlists = await this.playlistsService.getUserPlaylists(req.user.id);
+    return playlists.map((playlist) =>
+      this.playlistsService.toPlaylistDto(playlist),
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   async getPlaylistById(
     @Param('id') id: number,
@@ -48,19 +70,48 @@ export class PlaylistsController {
     return this.playlistsService.toPlaylistDto(playlist);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('create')
   async createPlaylist(
     @Body() playlistData: CreatePlaylistDto,
     @Req() req: AuthenticatedRequestDto,
   ): Promise<PlaylistDto> {
+    console.log('Datos recibidos del frontend:', playlistData);
     const playlist = await this.playlistsService.createPlaylist(
-      { name: playlistData.name },
+      playlistData,
       req.user,
     );
     return this.playlistsService.toPlaylistDto(playlist);
   }
 
-  @Post(':id/tracks')
+  // Update playlist
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id')
+  async updatePlaylist(
+    @Param('id') id: number,
+    @Body() updateData: UpdatePlaylistDto,
+    @Req() req: AuthenticatedRequestDto,
+  ): Promise<PlaylistDto> {
+    const playlist = await this.playlistsService.updatePlaylist(
+      id,
+      updateData,
+      req.user.id,
+    );
+    return this.playlistsService.toPlaylistDto(playlist);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  async deletePlaylist(
+    @Param('id') id: number,
+    @Req() req: AuthenticatedRequestDto,
+  ): Promise<{ message: string }> {
+    await this.playlistsService.deletePlaylist(id, req.user.id);
+    return { message: 'Playlist deleted successfully' };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/tracks')
   async addTrackToPlaylist(
     @Param('id') id: number,
     @Body('trackExternalId') trackExternalId: string,
@@ -69,6 +120,21 @@ export class PlaylistsController {
     const playlist = await this.playlistsService.addTrackToPlaylist(
       id,
       trackExternalId,
+      req.user.id,
+    );
+    return this.playlistsService.toPlaylistDto(playlist);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id/tracks/:trackId')
+  async removeTrackFromPlaylist(
+    @Param('id') id: number,
+    @Param('trackId') trackId: number,
+    @Req() req: AuthenticatedRequestDto,
+  ): Promise<PlaylistDto> {
+    const playlist = await this.playlistsService.removeTrackFromPlaylist(
+      id,
+      trackId,
       req.user.id,
     );
     return this.playlistsService.toPlaylistDto(playlist);

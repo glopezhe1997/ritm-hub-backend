@@ -19,6 +19,7 @@ import { PostsTagModule } from './posts_tag/posts_tag.module';
 import { AuthModule } from './auth/auth.module';
 import { SpotifyModule } from './spotify/spotify.module';
 import { FavoritesModule } from './favorites/favorites.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -89,6 +90,7 @@ import { FavoritesModule } from './favorites/favorites.module';
     AuthModule,
     SpotifyModule,
     FavoritesModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],
