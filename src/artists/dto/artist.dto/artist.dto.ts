@@ -1,4 +1,4 @@
-import { IsArray, IsInt, IsString, IsUrl } from 'class-validator';
+import { IsInt, IsString, IsUrl } from 'class-validator';
 
 export class ArtistDto {
   @IsInt()
@@ -10,9 +10,9 @@ export class ArtistDto {
   @IsString()
   external_id: string;
 
-  @IsArray()
-  @IsString({ each: true })
-  genres: string[];
+  // @IsArray()
+  // @IsString({ each: true })
+  // genres: string[];
 
   @IsInt()
   followers: number;

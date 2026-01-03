@@ -76,7 +76,6 @@ export class ArtistsService {
     const newArtist = this.artistsRepository.create({
       name: artistData.name,
       external_id: artistData.id,
-      genres: Array.isArray(artistData.genres) ? artistData.genres : [],
       followers: artistData.followers.total,
       img_url: artistData.images?.[0]?.url || null,
     });
