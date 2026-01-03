@@ -20,7 +20,6 @@ export class ArtistsController {
       id: artist.id,
       name: artist.name,
       external_id: artist.external_id,
-      genres: artist.genres,
       followers: artist.followers,
       img_url: artist.img_url,
     };
